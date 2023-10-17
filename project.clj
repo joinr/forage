@@ -16,7 +16,7 @@
                  [org.flatland/ordered "1.15.10"] ; for ordered-set
                  [net.mikera/core.matrix "0.63.0"]
                  [aerial.hanami "0.17.0"]
-                 ; [dk.ative/docjure "1.19.0"] ; Excel file creation functions
+                 ; [dk.ative/docjure "1.19.0"] ; Excel file creation functions 
                  [techascent/tech.ml.dataset "7.012"]
                  [scicloj/tablecloth "7.012"]
                  [techascent/tech.viz "6.00-beta-16-2"]
@@ -29,9 +29,11 @@
                  ;[clojure2d "1.4.4"] ; not required for cljplot, but allows additional choices
                  ;[metasoarous/darkstar "0.1.0"] ; require as applied-science.darkstar (fork of original applied-science/darkstar, which isn't on Clojars)
                  [mason "21"]
+                 [criterium "0.4.6"]
                 ]
 
   :source-paths ["src/clj"]
+  :plugins [[lein-localrepo "0.5.3"]]
 
   ; :plugins [[cider/cider-nrepl "0.24.0"]] ; FOR CONJURE
 

@@ -9,8 +9,8 @@
               [clojure.core :as cc] ; for cc/<, cc/> (in find-in-seg), and cc/+ (with reduce).
 ))
 
-;(set! *warn-on-reflection* true)
-;(set! *unchecked-math* :warn-on-boxed)
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* :warn-on-boxed)
 (fm/use-primitive-operators)
 
 ;; NOTE Advantages of starting with mathematical vectors (direction,
@@ -38,6 +38,8 @@
   will be problematic.  It also sidesteps the problem of identifying slopes
   that are actually vertical, but don't appear so because of float slop."
   1.0)
+
+(def ^:const +steep-slope-inf+ 1.0)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; GENERATING RANDOM WALKS
@@ -457,6 +459,9 @@
 ;; matter as long as look-fn is expensive, which is the case when using MASON
 ;; for look-fns. If I develop more efficient envs and look-fns, it might be
 ;; worth optimizing some of the code further.
+(defn vrev [v]
+  [(v 1) (v 0)])
+
 (defn find-in-seg
   "Given a pair of endpoints [x1 y1] and [x2 y2] on a line segment,
   and a small shift length, starts at [x1 y1] and incrementally checks
@@ -474,30 +479,41 @@
   returned depends on look-fn, which should reflect the way that this 
   function will be used.)  If no foodspots are found by the time [x2 y2]
   is checked, this function returns nil."
-  [look-fn eps [x1 y1] [x2 y2]]
-  (let [^double slope (m/slope-from-coords [x1 y1] [x2 y2])
+  [look-fn eps p1 p2]
+  (let [slope (m/slope-from-coords p1 p2)
         steep (or (infinite? slope)
-                  (> (abs slope) (double steep-slope-inf)))
+                  (> (abs slope) +steep-slope-inf+ #_(double steep-slope-inf)))
         slope (if steep (/ slope) slope)
-        look-fn (if steep (swap-args-fn look-fn) look-fn)
-        [[^double x1 ^double y1] [^double x2 ^double y2]] (if steep
-                                                            [[y1 x1] [y2 x2]]    ; swap x and y
-                                                            [[x1 y1] [x2 y2]])   ; make no change
+        look-fn (if steep (swap-args-fn look-fn) look-fn) ;;if it's steep, we swap...
+        
+        p1  (if steep (vrev p1) p1)
+        p2  (if steep (vrev p2) p2)
+        ^double
+        x1  (p1 0)
+        ^double
+        y1  (p1 1)
+        ^double
+        x2  (p2 0)
+        ^double
+        y2  (p2 1)
         x-pos-dir? (<= x1 x2)
         y-pos-dir? (<= y1 y2)
-        [^double x-eps ^double y-eps] (xy-shifts eps slope)     ; x-eps, y-eps always >= 0
-        x-shift (if x-pos-dir? x-eps (- x-eps)) ; correct their directions
-        y-shift (if y-pos-dir? y-eps (- y-eps))
+        #_[^double x-eps ^double y-eps]
+        xe-ye   (xy-shifts eps slope)     ; x-eps, y-eps always >= 0
+        x-shift (if x-pos-dir? (xe-ye  0) #_x-eps (- ^double (xe-ye  0) #_x-eps)) ; correct their directions
+        y-shift (if y-pos-dir? (xe-ye  1) #_y-eps (- ^double (xe-ye  1) #_y-eps))
         x-comp (if x-pos-dir? cc/> cc/<)   ; and choose tests for when we've 
-        y-comp (if y-pos-dir? cc/> cc/<)]  ;  gone too far
+        y-comp (if y-pos-dir? cc/> cc/<)
+        ]  ;  gone too far
+    #_
     (loop [x x1, y y1]
       (let [food (look-fn x y)]
         (cond food  [food (if steep [y x] [x y])] ; swap coords back if necess (food is correct)
               (== x x2)  nil ; last point: see comment above function def for explanation.
               :else  (let [xsh (+ x x-shift)
                            ysh (+ y y-shift)]
-                       (recur (if (x-comp xsh x2) x2 xsh) ; search from x2 if xsh went too far
-                              (if (y-comp ysh y2) y2 ysh))))))))
+                       (recur (if (x-comp ^double xsh ^double x2) x2 xsh) ; search from x2 if xsh went too far
+                              (if (y-comp ^double ysh ^double y2) y2 ysh))))))))
 
 
 (comment
