@@ -462,6 +462,12 @@
 (defn vrev [v]
   [(v 1) (v 0)])
 
+;;substantially faster than clojure.numbers...
+(defn lt [^double l ^double r]
+  (< l r))
+(defn gt [^double l ^double r]
+  (> l r))
+
 (defn find-in-seg
   "Given a pair of endpoints [x1 y1] and [x2 y2] on a line segment,
   and a small shift length, starts at [x1 y1] and incrementally checks
@@ -482,10 +488,9 @@
   [look-fn eps p1 p2]
   (let [slope (m/slope-from-coords p1 p2)
         steep (or (infinite? slope)
-                  (> (abs slope) +steep-slope-inf+ #_(double steep-slope-inf)))
+                  (> (abs slope) +steep-slope-inf+))
         slope (if steep (/ slope) slope)
         look-fn (if steep (swap-args-fn look-fn) look-fn) ;;if it's steep, we swap...
-        
         p1  (if steep (vrev p1) p1)
         p2  (if steep (vrev p2) p2)
         ^double
@@ -498,12 +503,13 @@
         y2  (p2 1)
         x-pos-dir? (<= x1 x2)
         y-pos-dir? (<= y1 y2)
-        #_[^double x-eps ^double y-eps]
-        xe-ye   (xy-shifts eps slope)     ; x-eps, y-eps always >= 0
+        xe-ye      (xy-shifts eps slope)     ; x-eps, y-eps always >= 0
+        ^double
         x-shift (if x-pos-dir? (xe-ye  0) #_x-eps (- ^double (xe-ye  0) #_x-eps)) ; correct their directions
+        ^double
         y-shift (if y-pos-dir? (xe-ye  1) #_y-eps (- ^double (xe-ye  1) #_y-eps))
-        x-comp (if x-pos-dir? cc/> cc/<)   ; and choose tests for when we've 
-        y-comp (if y-pos-dir? cc/> cc/<)
+        x-comp (if x-pos-dir? gt lt)   ; and choose tests for when we've
+        y-comp (if y-pos-dir? gt lt)
         ]  ;  gone too far
     (loop [x x1, y y1]
       (let [food (look-fn x y)]
@@ -511,8 +517,8 @@
               (== x x2)  nil ; last point: see comment above function def for explanation.
               :else  (let [xsh (+ x x-shift)
                            ysh (+ y y-shift)]
-                       (recur (if (x-comp ^double xsh ^double x2) x2 xsh) ; search from x2 if xsh went too far
-                              (if (y-comp ^double ysh ^double y2) y2 ysh))))))))
+                       (recur (if (x-comp  ^double xsh  ^double x2) x2 xsh) ; search from x2 if xsh went too far
+                              (if (y-comp  ^double ysh  ^double y2) y2 ysh))))))))
 
 
 (comment
@@ -539,8 +545,7 @@
       (find-in-seg env/constant-failure-look-fn
                    0.2
                    (first mywalk0)
-                   (second mywalk0))))
-  )
+                   (second mywalk0)))
 
   ;; Test using more realistic (i.e. more like what the simulation uses) data:
   (def seed 1234567890123456)
