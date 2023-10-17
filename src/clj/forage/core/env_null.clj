@@ -29,7 +29,8 @@
   The resulting function takes two arguments, x and y coordinates,
   and returns falsey or truthy."
   [^long interval]
-  (let [^longs look-cnt$ (long-array [1])]
+  (let [^longs look-cnt$ (long-array 1)
+        _ (aset look-cnt$ 0 1)]
     (fn [^double x ^double y]
       (if (= (aget look-cnt$ 0) interval)
         (do (aset look-cnt$ 0 1)
