@@ -6,7 +6,9 @@
               [fastmath.stats :as fstats]
               [fastmath.core :as fm]
               [clojure.core :as cc] ; to replace fastmath macros in reduce, map, etc.
-              [clojure.string :as st]))
+              [clojure.string :as st]
+              [structural.core :as s])
+    (:import [clojure.lang Indexed]))
 
 ;(set! *warn-on-reflection* true)
 ;(set! *unchecked-math* :warn-on-boxed)
@@ -118,6 +120,7 @@
     ##Inf ; infinity is what division below would give for the vertical slope
     (/ (- y2 y1) (- x2 x1))))
 
+#_
 (defn slope-from-coords
   "Given a pair of points on a line, return its slope.  This is also the
   vector direction from the first point to the second.  If the line is
@@ -127,6 +130,17 @@
         ^double y1 (x1y1 1)
         ^double x2 (x2y2 0)
         ^double y2 (x2y2 1)]
+    (if (== x1 x2)
+      ##Inf ; infinity is what division below would give for the vertical slope
+      (/ (- y2 y1) (- x2 x1)))))
+
+(defn slope-from-coords
+  "Given a pair of points on a line, return its slope.  This is also the
+  vector direction from the first point to the second.  If the line is
+  vertical, returns ##Inf (infinity) to indicate that."
+  ^double [p1  p2]
+  (s/with-slots [[^double x1 ^double y1] ^Indexed p1
+                 [^double x2 ^double y2] ^Indexed p2]
     (if (== x1 x2)
       ##Inf ; infinity is what division below would give for the vertical slope
       (/ (- y2 y1) (- x2 x1)))))

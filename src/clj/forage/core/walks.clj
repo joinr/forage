@@ -7,7 +7,8 @@
               [utils.random :as r]
               [fastmath.core :as fm]
               [clojure.core :as cc] ; for cc/<, cc/> (in find-in-seg), and cc/+ (with reduce).
-))
+              [structural.core :as s])
+    (:import [clojure.lang Indexed]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)
@@ -485,32 +486,23 @@
   returned depends on look-fn, which should reflect the way that this 
   function will be used.)  If no foodspots are found by the time [x2 y2]
   is checked, this function returns nil."
-  [look-fn eps p1 p2]
-  (let [slope (m/slope-from-coords p1 p2)
-        steep (or (infinite? slope)
-                  (> (abs slope) +steep-slope-inf+))
-        slope (if steep (/ slope) slope)
-        look-fn (if steep (swap-args-fn look-fn) look-fn) ;;if it's steep, we swap...
-        p1  (if steep (vrev p1) p1)
-        p2  (if steep (vrev p2) p2)
-        ^double
-        x1  (p1 0)
-        ^double
-        y1  (p1 1)
-        ^double
-        x2  (p2 0)
-        ^double
-        y2  (p2 1)
-        x-pos-dir? (<= x1 x2)
-        y-pos-dir? (<= y1 y2)
-        xe-ye      (xy-shifts eps slope)     ; x-eps, y-eps always >= 0
-        ^double
-        x-shift (if x-pos-dir? (xe-ye  0) (- ^double (xe-ye  0))) ; correct their directions
-        ^double
-        y-shift (if y-pos-dir? (xe-ye  1) (- ^double (xe-ye  1)))
-        x-comp (if x-pos-dir? gt lt)   ; and choose tests for when we've
-        y-comp (if y-pos-dir? gt lt)
-        ]  ;  gone too far
+  [look-fn eps  p1  p2]
+  (s/with-slots
+    [slope (m/slope-from-coords p1 p2)
+     steep (or (infinite? slope)
+               (> (abs slope) +steep-slope-inf+))
+     slope (if steep (/ slope) slope)
+     look-fn (if steep (swap-args-fn look-fn) look-fn) ;;if it's steep, we swap...
+     [^double x1 ^double y1] ^Indexed (if steep (vrev p1) p1)
+     [^double x2 ^double y2] ^Indexed (if steep (vrev p2) p2)
+     x-pos-dir? (<= x1 x2)
+     y-pos-dir? (<= y1 y2)
+     [^double xe ^double ye]    ^Indexed (xy-shifts eps slope)     ; x-eps, y-eps always >= 0
+     x-shift (if x-pos-dir? xe  (- xe)) ; correct their directions
+     y-shift (if y-pos-dir? ye  (- ye))
+     x-comp (if x-pos-dir? gt lt)   ; and choose tests for when we've
+     y-comp (if y-pos-dir? gt lt)
+     ]  ;  gone too far
     (loop [x x1, y y1]
       (let [food (look-fn x y)]
         (cond food  [food (if steep [y x] [x y])] ; swap coords back if necess (food is correct)

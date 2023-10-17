@@ -30,6 +30,7 @@
                  ;[metasoarous/darkstar "0.1.0"] ; require as applied-science.darkstar (fork of original applied-science/darkstar, which isn't on Clojars)
                  [mason "21"]
                  [criterium "0.4.6"]
+                 [structural "0.2.0-SNAPSHOT"]
                 ]
 
   :source-paths ["src/clj"]
