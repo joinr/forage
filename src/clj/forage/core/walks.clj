@@ -1,13 +1,11 @@
 ;; (Code s/b independent of MASON and plot libs (e.g. Hanami, Vega-Lite).)
-
-
 (ns forage.core.walks
     (:require [utils.math :as m]
               [utils.spiral :as spiral]
               [utils.random :as r]
               [fastmath.core :as fm]
               [clojure.core :as cc] ; for cc/<, cc/> (in find-in-seg), and cc/+ (with reduce).
-))
+              ))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)
@@ -421,8 +419,16 @@
 (defn swap-args-fn
   "Given a function that accepts two arguments, wraps it in a function
   that reverses the arguments and passes them to the original function."
-  [f]
-  (fn [x y] (f y x)))
+  [^clojure.lang.IFn$DDO f]
+  (fn [^double x ^double y] (.invokePrim f y x)))
+
+;;primitive variant if we know we're passing double coords....
+#_
+(defn swap-args-fn
+  "Given a function that accepts two arguments, wraps it in a function
+  that reverses the arguments and passes them to the original function."
+  [^clojure.lang.IFn$DDO f]
+  (fn [^double x ^double y] (.invokePrim f y x)))
 
 
 ;; See doc/xyshifts.md for notes about this function and xy-shifts.
