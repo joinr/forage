@@ -505,7 +505,6 @@
         x-comp (if x-pos-dir? cc/> cc/<)   ; and choose tests for when we've 
         y-comp (if y-pos-dir? cc/> cc/<)
         ]  ;  gone too far
-    #_
     (loop [x x1, y y1]
       (let [food (look-fn x y)]
         (cond food  [food (if steep [y x] [x y])] ; swap coords back if necess (food is correct)
@@ -535,12 +534,12 @@
   (require '[forage.core.env-null :as env])
 
   (def mywalk0 [[0 0] [1 1]])
-  
+
   (crit/quick-bench
-    (def result (find-in-seg env/constant-failure-look-fn
-                             0.2
-                             (first mywalk0)
-                             (second mywalk0)))
+      (find-in-seg env/constant-failure-look-fn
+                   0.2
+                   (first mywalk0)
+                   (second mywalk0))))
   )
 
   ;; Test using more realistic (i.e. more like what the simulation uses) data:
