@@ -505,9 +505,9 @@
         y-pos-dir? (<= y1 y2)
         xe-ye      (xy-shifts eps slope)     ; x-eps, y-eps always >= 0
         ^double
-        x-shift (if x-pos-dir? (xe-ye  0) #_x-eps (- ^double (xe-ye  0) #_x-eps)) ; correct their directions
+        x-shift (if x-pos-dir? (xe-ye  0) (- ^double (xe-ye  0))) ; correct their directions
         ^double
-        y-shift (if y-pos-dir? (xe-ye  1) #_y-eps (- ^double (xe-ye  1) #_y-eps))
+        y-shift (if y-pos-dir? (xe-ye  1) (- ^double (xe-ye  1)))
         x-comp (if x-pos-dir? gt lt)   ; and choose tests for when we've
         y-comp (if y-pos-dir? gt lt)
         ]  ;  gone too far
@@ -517,8 +517,8 @@
               (== x x2)  nil ; last point: see comment above function def for explanation.
               :else  (let [xsh (+ x x-shift)
                            ysh (+ y y-shift)]
-                       (recur (if (x-comp  ^double xsh  ^double x2) x2 xsh) ; search from x2 if xsh went too far
-                              (if (y-comp  ^double ysh  ^double y2) y2 ysh))))))))
+                       (recur (if (x-comp xsh x2) x2 xsh) ; search from x2 if xsh went too far
+                              (if (y-comp ysh y2) y2 ysh))))))))
 
 
 (comment
